@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zero storage file share</title>
+
+  <style>
+    body{
+      background:#0f0f0f;
+      color:white;
+      font-family:sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      margin:0;
+    }
+
+    .box{
+      width:500px;
+      background:#1a1a1a;
+      padding:30px;
+      border-radius:16px;
+      box-shadow:0 0 20px rgba(0,0,0,.4);
+    }
+
+    input,button{
+      width:100%;
+      padding:12px;
+      margin-top:10px;
+      border:none;
+      border-radius:10px;
+      font-size:16px;
+    }
+
+    button{
+      background:#4f46e5;
+      color:white;
+      cursor:pointer;
+    }
+
+    textarea{
+      width:100%;
+      height:120px;
+      margin-top:10px;
+      background:#111;
+      color:#0f0;
+      border:none;
+      padding:10px;
+      border-radius:10px;
+      resize:none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Zero Storage File Share</h2>
+
+  <input type="file" id="fileInput">
+
+  <button onclick="generateLink()">Generate Share Link</button>
+
+  <textarea id="output" readonly placeholder="Share link appears here"></textarea>
+</div>
+
+<script>
+async function generateLink() {
+  const file = document.getElementById("fileInput").files[0];
+
+  if (!file) {
+    alert("Pick a file");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function () {
+    const base64 = reader.result.split(",")[1];
+
+    const url = location.origin + location.pathname + "#" +
+      encodeURIComponent(file.name) + "|" + base64;
+
+    document.getElementById("output").value = url;
+
+    navigator.clipboard.writeText(url);
+  };
+
+  reader.readAsDataURL(file);
+}
+
+window.onload = () => {
+  if (location.hash.length > 1) {
+
+    const data = location.hash.substring(1);
+
+    const parts = data.split("|");
+
+    const filename = decodeURIComponent(parts[0]);
+
+    const base64 = parts[1];
+
+    const byteCharacters = atob(base64);
+
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+
+    const blob = new Blob([byteArray]);
+
+    const a = document.createElement("a");
+
+    a.href = URL.createObjectURL(blob);
+
+    a.download = filename;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+  }
+};
+</script>
+
+</body>
+</html>
